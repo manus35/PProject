@@ -5,19 +5,18 @@ name: .NET MAUI CI/CD Pipeline
 # Define when the workflow should run
 on:
   push:
-    branches: [ main ]       # Trigger on push events to the main branch
+    branches: [ main ]        # Trigger on push events to the main branch
   pull_request:
-    branches: [ main ]       # Trigger on pull requests targeting the main branch
-  workflow_dispatch:        # Allow manual triggering from the Actions tab
+    branches: [ main ]        # Trigger on pull requests targeting the main branch
+  workflow_dispatch:          # Allow manual triggering from the Actions tab
 
 jobs:
   # ----- Build Job -----
   # This job builds and tests the .NET MAUI application
   Build:
-    name: Build .NET MAUI App
+    name: Build .NET MAUI App # Or adjust name if it's not MAUI, e.g., "Build .NET Project"
     # Using windows-latest as it's common for .NET dev and can build for Windows targets.
-    # You might need macos-latest if you specifically need to build for iOS/MacCatalyst here.
-    runs-on: windows-latest # Or macos-latest if building for Apple platforms is required
+    runs-on: windows-latest
 
     steps:
       - name: Checkout code
@@ -26,24 +25,26 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          # Specify the .NET version your MAUI project uses. Adjust if necessary.
+          # Specify the .NET version your project uses. Adjust if necessary.
           dotnet-version: '8.0.x' # Example: Use .NET 8 LTS
 
       - name: Restore Dependencies
-        run: dotnet restore YourProject/YourProject.csproj
-        # TODO: Update path to your actual .NET MAUI project file (.csproj) or solution file (.sln)
+        run: dotnet restore PcapAnalysisTool/PcapAnalysisTool.csproj
 
       - name: Build Project
-        run: dotnet build YourProject/YourProject.csproj --configuration Release --no-restore
-        # TODO: Update path to your actual .NET MAUI project file (.csproj) or solution file (.sln)
-        # TODO: Add specific target frameworks if needed, e.g., -f net8.0-android
+        run: dotnet build PcapAnalysisTool/PcapAnalysisTool.csproj --configuration Release --no-restore
+        # If this isn't a MAUI project, you might not need specific framework flags
 
       - name: Run Tests (Optional)
+        # --- CHECK AND UPDATE THIS LINE if you have tests ---
+        # You MUST verify the actual path to your test project .csproj file
         run: dotnet test YourProject.Tests/YourProject.Tests.csproj --no-build --no-restore
-        # TODO: Update path to your test project if you have one. Remove if not applicable yet.
+        # Example: If tests are in PcapAnalysisTool.Tests/PcapAnalysisTool.Tests.csproj, use that path.
+        # If you don't have a test project yet, you can remove this step or comment it out:
+        # run: echo "Skipping tests - no test project specified or found."
 
       - name: Build Output Ready
-        run: echo "Build and Test steps completed (simulated/basic)."
+        run: echo "Build and Test steps completed."
 
   # ----- Deploy to Development -----
   # Deploys to Dev environment ONLY on Pull Requests to main
