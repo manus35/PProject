@@ -1,0 +1,104 @@
+# .github/workflows/dotnet-maui-ci-cd.yml
+
+name: .NET MAUI CI/CD Pipeline
+
+# Define when the workflow should run
+on:
+  push:
+    branches: [ main ]       # Trigger on push events to the main branch
+  pull_request:
+    branches: [ main ]       # Trigger on pull requests targeting the main branch
+  workflow_dispatch:        # Allow manual triggering from the Actions tab
+
+jobs:
+  # ----- Build Job -----
+  # This job builds and tests the .NET MAUI application
+  Build:
+    name: Build .NET MAUI App
+    # Using windows-latest as it's common for .NET dev and can build for Windows targets.
+    # You might need macos-latest if you specifically need to build for iOS/MacCatalyst here.
+    runs-on: windows-latest # Or macos-latest if building for Apple platforms is required
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          # Specify the .NET version your MAUI project uses. Adjust if necessary.
+          dotnet-version: '8.0.x' # Example: Use .NET 8 LTS
+
+      - name: Restore Dependencies
+        run: dotnet restore YourProject/YourProject.csproj
+        # TODO: Update path to your actual .NET MAUI project file (.csproj) or solution file (.sln)
+
+      - name: Build Project
+        run: dotnet build YourProject/YourProject.csproj --configuration Release --no-restore
+        # TODO: Update path to your actual .NET MAUI project file (.csproj) or solution file (.sln)
+        # TODO: Add specific target frameworks if needed, e.g., -f net8.0-android
+
+      - name: Run Tests (Optional)
+        run: dotnet test YourProject.Tests/YourProject.Tests.csproj --no-build --no-restore
+        # TODO: Update path to your test project if you have one. Remove if not applicable yet.
+
+      - name: Build Output Ready
+        run: echo "Build and Test steps completed (simulated/basic)."
+
+  # ----- Deploy to Development -----
+  # Deploys to Dev environment ONLY on Pull Requests to main
+  DeployDev:
+    name: Deploy to Development
+    needs: [ Build ] # Run only after Build job succeeds
+    if: github.event_name == 'pull_request' # Run only for pull requests
+    runs-on: ubuntu-latest # Deployment steps might run on linux/windows/mac depending on target
+
+    environment:
+      name: Development # Needs to match the Environment name in GitHub Repo Settings
+      url: http://dev.placeholder.com # Optional: Placeholder URL for the environment
+
+    steps:
+      - name: Deploy to Development Environment
+        run: |
+          echo "Simulating deployment to Development..."
+          echo "Artifacts from Build job would be downloaded and deployed here."
+          # TODO: Add actual deployment steps for Development (e.g., App Center, TestFlight, device farm)
+
+  # ----- Deploy to Staging -----
+  # Deploys to Staging environment ONLY on push/merge to main
+  DeployStaging:
+    name: Deploy to Staging
+    needs: [ Build ] # Run only after Build job succeeds
+    if: github.event.ref == 'refs/heads/main' # Run only on push/merge to main branch
+    runs-on: ubuntu-latest
+
+    environment:
+      name: Staging # Needs to match the Environment name in GitHub Repo Settings
+      url: http://staging.placeholder.com # Optional: Placeholder URL
+
+    steps:
+      - name: Deploy to Staging Environment
+        run: |
+          echo "Simulating deployment to Staging..."
+          echo "Artifacts from Build job would be downloaded and deployed here."
+          # TODO: Add actual deployment steps for Staging
+
+  # ----- Deploy to Production -----
+  # Deploys to Production environment ONLY after successful Staging deployment (on push/merge to main)
+  DeployProduction:
+    name: Deploy to Production
+    needs: [ DeployStaging ] # Run only after DeployStaging job succeeds
+    # Implicitly runs only on push/merge to main because DeployStaging only runs then
+    runs-on: ubuntu-latest
+
+    environment:
+      name: Production # Needs to match the Environment name in GitHub Repo Settings
+      # Consider adding required reviewers or wait timers via Environment Protection Rules in GitHub Settings
+      url: http://prod.placeholder.com # Optional: Placeholder URL
+
+    steps:
+      - name: Deploy to Production Environment
+        run: |
+          echo "Simulating deployment to Production..."
+          echo "Artifacts from Build job would be downloaded and deployed here."
+          # TODO: Add actual deployment steps for Production (e.g., App Store submission, Google Play upload)
